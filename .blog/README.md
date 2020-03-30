@@ -224,7 +224,13 @@ kfctl delete -V -f ${CONFIG_FILE}
 ## Remove the cluster
 ### Run this from the root directory of the repo
 eksctl delete cluster -f eks-kubeflow-cluster.yaml
+```
 
+Before we can remove Cognito we must first remove the domain we created for it. This can be done in the same location where we set the domain
+
+![Cognito delete domain](img/cognito-delete-domain.png)
+
+```bash
 # Remove CloudFormation stack for cognito
 aws cloudformation delete-stack \
   --stack-name "eks-kubeflow-cognito" \
