@@ -91,10 +91,6 @@ It's also worth checking that the Enabled Identity Providers box is selected and
 
 ![Enabled Identity Providers flag](img/cognito-enable-identity-provider.png)
 
-Finally head over to Route53 and under your domain (in my case devopstar.com) create an Alias A record with the CloudFront entry provided in the previous setup
-
-![Route53 CloudFront entry for Cognito](img/route53-cognito-dns-entry.png)
-
 We can now move onto setting up our EKS cluster. **Note** *that we will keen to come back to update the callback URL for the cognito app later on in the tutorial.*
 
 ## EKS Setup
@@ -194,11 +190,15 @@ Back in the Cognito console under our `App client settings` insert the callback 
 
 ![Cognito Callback URL set](img/cognito-callback-url-set.png)
 
+NOTE: Alternatively (and the way we are going to do it) you can set up the `auth.devopstar.com` domain to point to the ALB created Kubeflow. Head on over to Route53 and update the A records alias (for your equivalent of `auth.devopstar.com`)
+
+![Route53 Record for ALB](img/route53-cognito-dns-entry.png)
+
 Now we will also need a demo user to work with, so go ahead and make a new one under the `Users and groups` tab in the User Pool settings
 
 ![Cognito Create new user](img/cognito-create-new-user.png)
 
-Finally we can navigate to the cluster endpoint that you retrieved from the `kubectl` command above and you'll be able to login with Cognito authentication.
+Finally we can navigate to the cluster endpoint that you retrieved from the `kubectl` command, or your equivalent domain to `auth.devopstar.com` and you'll be able to login with Cognito authentication.
 
 ![Cognito Login using new user](img/cognito-login-kubeflow.png)
 
@@ -208,7 +208,7 @@ Create the namespace `ekskubeflow`.
 
 ![Setup Kubeflow](img/kubeflow-get-started.png)
 
-Create a new Notebook
+Create a new Notebook to test everything is working the way it should be.
 
 ![Kubeflow Notebook](img/kubeflow-notebook-create.png)
 
