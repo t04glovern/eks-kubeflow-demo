@@ -37,10 +37,10 @@ Run the following command from our project repo to deploy the stack.
 
 ```bash
 aws cloudformation create-stack \
-    --stack-name "eks-kubeflow-cognito" \
-    --template-body file://eks-kubeflow-cognito.yaml \
-    --capabilities CAPABILITY_IAM \
-    --region us-west-2
+  --stack-name "eks-kubeflow-cognito" \
+  --template-body file://eks-kubeflow-cognito.yaml \
+  --capabilities CAPABILITY_IAM \
+  --region us-west-2
 ```
 
 > Later in this tutorial you will need to retrieve the Cognito details from the CloudFormation stack. This is done by using the `aws cloudformation describe-stacks` CLI command.
@@ -72,14 +72,24 @@ Before continuing to the next step, take note of the Certificate ARN
 > NOTE: Take note of the ARN somewhere where we can use it later, in my case I'll export it as an environment variable
 
 ```bash
-export AWS_ACM_CERT_ARN=arn:aws:acm:us-east-1:XXXXXXXXXXXX:certificate/5cde2e53-8f1b-44c1-920b-6556dc868239
+export AWS_ACM_CERT_ARN=arn:aws:acm:us-west-2:XXXXXXXXXXXX:certificate/5cde2e53-8f1b-44c1-920b-6556dc868239
 ```
 
 ### Domain Setup (Cognito)
 
-Now that the certificate is validated head over to the Amazon Cognito console **in the us-west-2 region**.
+Now that the certificate is validated head over to the Amazon Cognito console **in the us-west-2 region**. Create a new custom domain, in this case I've used `kubeflow-devopstar`
 
-![Cognito Custom domain creation](img/eks-kubeflow-cognito-custom-domain.png)
+![Cognito Custom domain creation](img/cognito-custom-domain.png)
+
+> **NOTE:** You also update the first line in `eks-kubeflow-install.sh` to match what you set here
+
+```bash
+export COGNITO_AUTH_DOMAIN=kubeflow-devopstar
+```
+
+It's also worth checking that the Enabled Identity Providers box is selected and Cognito User Pool is checked
+
+![Enabled Identity Providers flag](img/cognito-enable-identity-provider.png)
 
 Finally head over to Route53 and under your domain (in my case devopstar.com) create an Alias A record with the CloudFront entry provided in the previous setup
 
@@ -120,8 +130,8 @@ wget -O kfctl_aws.yaml $CONFIG_URI
 sed -i -e 's/kubeflow-aws/'"$AWS_CLUSTER_NAME"'/' ${CONFIG_FILE}
 sed -i "s@us-west-2@$AWS_REGION@" ${CONFIG_FILE}
 
-# Disable IAM roles
-sed -i "s@eksctl-eks-kubeflow-nodegroup-ng-a2-NodeInstanceRole-xxxxx@$AWS_CLUSTER_NODE_ROLE@" ${CONFIG_FILE}
+# Update Node IAM roles
+sed -i "s@eksctl-$AWS_CLUSTER_NAME-nodegroup-ng-a2-NodeInstanceRole-xxxxx@$AWS_CLUSTER_NODE_ROLE@" ${CONFIG_FILE}
 
 # Cognito Details
 sed -i "s@arn:aws:acm:us-west-2:xxxxx:certificate/xxxxxxxxxxxxx-xxxx@$AWS_ACM_CERT_ARN@" ${CONFIG_FILE}
@@ -140,13 +150,13 @@ To check that things have worked open up the `eks-kubeflow/kfctl_aws.yaml` templ
     spec:
       auth:
         cognito:
-          certArn: arn:aws:acm:us-east-1:xxxxxxxxxxxxx:certificate/5cde2e53-8f1b-44c1-920b-6556dc868239
+          certArn: arn:aws:acm:us-west-2:xxxxxxxxxxxxx:certificate/5cde2e53-8f1b-44c1-920b-6556dc868239
           cognitoAppClientId: 4coatq7l46irmkacnohbgjpom2
           cognitoUserPoolArn: arn:aws:cognito-idp:us-west-2:xxxxxxxxxxxxx:userpool/us-west-2_Izsf6MKFn
-          cognitoUserPoolDomain: auth.devopstar.com
+          cognitoUserPoolDomain: kubeflow-devopstar
       region: us-west-2
       roles:
-      - "eksctl-eks-kubeflow-nodegroup-nod-NodeInstanceRole-1AV291G6VREQL"
+      - eksctl-eks-kubeflow-nodegroup-nod-NodeInstanceRole-1AV291G6VREQL
 ```
 
 ### Deploy
@@ -175,10 +185,20 @@ Take this endpoint and contruct the following variation of it with the OAuth for
 
 ```bash
 https://${CLUSTER_ENDPOINT}/oauth2/idpresponse
-# https://82aa8b05-istiosystem-istio-2af2-1293882277.us-west-2.elb.amazonaws.com/oauth2/idpresponse
+# https://82aa8b05-istiosystem-istio-2af2-280604513.us-west-2.elb.amazonaws.com/oauth2/idpresponse
 ```
 
 Back in the Cognito console under our `App client settings` insert the callback URL we just constructed
+
+![Cognito Callback URL set](img/cognito-callback-url-set.png)
+
+Now we will also need a demo user to work with, so go ahead and make a new one under the `Users and groups` tab in the User Pool settings
+
+![Cognito Create new user](img/cognito-create-new-user.png)
+
+Finally we can navigate to the cluster endpoint that you retrieved from the `kubectl` command above and you'll be able to login with Cognito authentication.
+
+![Cognito Login using new user](img/cognito-login-kubeflow.png)
 
 ### Get Started
 
@@ -207,6 +227,6 @@ eksctl delete cluster -f eks-kubeflow-cluster.yaml
 
 # Remove CloudFormation stack for cognito
 aws cloudformation delete-stack \
-    --stack-name "eks-kubeflow-cognito" \
-    --region us-west-2
+  --stack-name "eks-kubeflow-cognito" \
+  --region us-west-2
 ```

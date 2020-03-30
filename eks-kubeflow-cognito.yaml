@@ -7,39 +7,13 @@ Parameters:
     Description: Unique Auth Name for Cognito Resources
 
 Resources:
-  # Creates a role that allows Cognito to send SNS messages
-  SNSRole:
-    Type: "AWS::IAM::Role"
-    Properties:
-      AssumeRolePolicyDocument: 
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Principal: 
-              Service: 
-                - "cognito-idp.amazonaws.com"
-            Action: 
-              - "sts:AssumeRole"
-      Policies:
-        - PolicyName: "CognitoSNSPolicy"
-          PolicyDocument: 
-            Version: "2012-10-17"
-            Statement: 
-              - Effect: "Allow"
-                Action: "sns:publish"
-                Resource: "*"
-
   # Creates a user pool in cognito for your app to auth against
-  # This example requires MFA and validates the phone number to use as MFA
   # Other fields can be added to the schema
   UserPool:
     Type: "AWS::Cognito::UserPool"
     Properties:
       UserPoolName: !Sub ${AuthName}-user-pool
       MfaConfiguration: "OFF"
-      SmsConfiguration:
-        ExternalId: !Sub ${AuthName}-external
-        SnsCallerArn: !GetAtt SNSRole.Arn
       Schema:
         - Name: name
           AttributeDataType: String
@@ -105,7 +79,7 @@ Resources:
                   - "cognito-sync:*"
                 Resource: "*"
 
-  # Create a role for authorized acces to AWS resources. Control what your user can access. This example only allows Lambda invokation
+  # Create a role for authorized acces to AWS resources. Control what your user can access.
   # Only allows users in the previously created Identity Pool
   CognitoAuthorizedRole:
     Type: "AWS::IAM::Role"
@@ -145,17 +119,9 @@ Resources:
         unauthenticated: !GetAtt CognitoUnAuthorizedRole.Arn
 
 Outputs:
-  UserPoolId:
-    Value: !Ref UserPool
-    Export:
-      Name: "UserPool::Id"
   UserPool:
     Value: !GetAtt UserPool.Arn
   UserPoolClientId:
     Value: !Ref UserPoolClient
     Export:
       Name: "UserPoolClient::Id"
-  IdentityPoolId:
-    Value: !Ref IdentityPool
-    Export:
-      Name: "IdentityPool::Id"

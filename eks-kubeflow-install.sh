@@ -1,5 +1,5 @@
-# Change
-export COGNITO_AUTH_DOMAIN=auth.devopstar.com
+# Change to what you set in Cognito
+export COGNITO_AUTH_DOMAIN=kubeflow-devopstar
 
 export AWS_REGION=us-west-2
 export AWS_CLUSTER_NAME=eks-kubeflow
@@ -17,7 +17,7 @@ AWS_CLUSTER_NODE_ROLE_LONG=$(aws eks describe-nodegroup --nodegroup-name nodegro
                 --region $AWS_REGION \
                 --cluster-name $AWS_CLUSTER_NAME \
                 --query 'nodegroup.nodeRole')
-export AWS_CLUSTER_NODE_ROLE=$(echo $AWS_CLUSTER_NODE_ROLE_LONG  | cut -b 32-)
+export AWS_CLUSTER_NODE_ROLE=$(echo $AWS_CLUSTER_NODE_ROLE_LONG | cut -b 33- | rev | cut -c 2- | rev)
 
 export BASE_DIR=${PWD}
 export KF_NAME=${AWS_CLUSTER_NAME}
