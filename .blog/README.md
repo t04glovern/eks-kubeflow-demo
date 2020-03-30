@@ -186,6 +186,8 @@ Take this endpoint and contruct the following variation of it with the OAuth for
 ```bash
 https://${CLUSTER_ENDPOINT}/oauth2/idpresponse
 # https://82aa8b05-istiosystem-istio-2af2-280604513.us-west-2.elb.amazonaws.com/oauth2/idpresponse
+# OR
+# https://auth.devopstar.com/oauth2/idpresponse
 ```
 
 Back in the Cognito console under our `App client settings` insert the callback URL we just constructed
@@ -202,11 +204,9 @@ Finally we can navigate to the cluster endpoint that you retrieved from the `kub
 
 ### Get Started
 
-![Setup Kubeflow](img/kubeflow-get-started-01.png)
-
 Create the namespace `ekskubeflow`.
 
-![Setup Kubeflow Namespace](img/kubeflow-get-started-02.png)
+![Setup Kubeflow](img/kubeflow-get-started.png)
 
 Create a new Notebook
 
