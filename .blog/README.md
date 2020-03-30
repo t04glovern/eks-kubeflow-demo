@@ -117,12 +117,10 @@ mkdir -p ${KF_DIR} && cd ${KF_DIR}
 wget -O kfctl_aws.yaml $CONFIG_URI
 
 # Replace existing info with your setup
-# sed -i '/region: us-west-2/ a \      enablePodIamPolicy: true' ${CONFIG_FILE}
 sed -i -e 's/kubeflow-aws/'"$AWS_CLUSTER_NAME"'/' ${CONFIG_FILE}
 sed -i "s@us-west-2@$AWS_REGION@" ${CONFIG_FILE}
 
 # Disable IAM roles
-# sed -i "s@roles:@#roles:@" ${CONFIG_FILE}
 sed -i "s@eksctl-eks-kubeflow-nodegroup-ng-a2-NodeInstanceRole-xxxxx@$AWS_CLUSTER_NODE_ROLE@" ${CONFIG_FILE}
 
 # Cognito Details
@@ -148,7 +146,7 @@ To check that things have worked open up the `eks-kubeflow/kfctl_aws.yaml` templ
           cognitoUserPoolDomain: auth.devopstar.com
       region: us-west-2
       roles:
-      - "arn:aws:iam::xxxxxxxxxxxxx:role/eksctl-eks-kubeflow-nodegroup-nod-NodeInstanceRole-1AV291G6VREQL"
+      - "eksctl-eks-kubeflow-nodegroup-nod-NodeInstanceRole-1AV291G6VREQL"
 ```
 
 ### Deploy
@@ -198,3 +196,17 @@ Create a new Notebook
 
 The clean up process for this stack is broken up into a couple different steps that need to be completed in order so that orphaned resources aren't left behind.
 
+```bash
+## Remove everything from the cluster
+cd ${KF_DIR}
+kfctl delete -V -f ${CONFIG_FILE}
+
+## Remove the cluster
+### Run this from the root directory of the repo
+eksctl delete cluster -f eks-kubeflow-cluster.yaml
+
+# Remove CloudFormation stack for cognito
+aws cloudformation delete-stack \
+    --stack-name "eks-kubeflow-cognito" \
+    --region us-west-2
+```

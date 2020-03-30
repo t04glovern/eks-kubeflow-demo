@@ -13,10 +13,11 @@ export COGNITO_CLIENT_APP_ID=$(aws cloudformation describe-stacks --stack-name $
                 --region $AWS_REGION \
                 --query 'Stacks[0].Outputs[?OutputKey==`UserPoolClientId`].OutputValue' \
                 --output text)
-export AWS_CLUSTER_NODE_ROLE=$(aws eks describe-nodegroup --nodegroup-name nodegroup \
+AWS_CLUSTER_NODE_ROLE_LONG=$(aws eks describe-nodegroup --nodegroup-name nodegroup \
                 --region $AWS_REGION \
                 --cluster-name $AWS_CLUSTER_NAME \
                 --query 'nodegroup.nodeRole')
+export AWS_CLUSTER_NODE_ROLE=$(echo $AWS_CLUSTER_NODE_ROLE_LONG  | cut -b 32-)
 
 export BASE_DIR=${PWD}
 export KF_NAME=${AWS_CLUSTER_NAME}
